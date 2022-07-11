@@ -10,9 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
 
-from pathlib import Path
 import os
-import django_heroku
+from pathlib import Path
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +27,7 @@ SECRET_KEY = 'n&de6$-$c0*p^0fznh=h!xx2gd-=2_)s*^t__!!@h03l#$-syy'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-# ALLOWED_HOSTS = [*]
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     # 'embed_video',
     'rest_framework',
     'reset_migrations',
@@ -66,9 +67,9 @@ REST_FRAMEWORK = {
     ],
 }
 
-CRONJOBS = [
-    ('*/1 * * * *', 'myapp.cron.pinschedule')
-]
+# CRONJOBS = [
+#     ('*/1 * * * *', 'myapp.cron.pinschedule')
+# ]
 
 # 'DEFAULT_PERMISSION_CLASSES': [
 #    'rest_framework.permissions.AllowAny',
@@ -103,6 +104,7 @@ CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -133,19 +135,38 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'myproject.wsgi.application'
 
+ASGI_APPLICATION = 'myproject.routing.application'
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'genorion',
-        'USER': 'postgres',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+CORS_ALLOW_ALL_ORIGINS = True
+
+CORS_ALLOW_METHODS = [
+    "DELETE",
+    "GET",
+    "OPTIONS",
+    "PATCH",
+    "POST",
+    "PUT",
+]
 
 # DATABASES = {
 #     'default':{
@@ -203,13 +224,13 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
-# STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 MEDIA_URL='/media/'
 
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_ROOT=os.path.join(BASE_DIR,'media')
 #Activate Django-Heroku.
-django_heroku.settings(locals())
+
 
 # AUTH_USER_MODEL = 'myapp.User'
 
